@@ -32,7 +32,15 @@ env:
 jobs:
   test:
     name: Run tests
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - ubuntu-24.04-arm
+          - macos-latest
+          - macos15-intel
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
