@@ -1,0 +1,45 @@
+name: Tests
+
+on:
+  workflow_call:
+
+jobs:
+  test:
+    name: Run tests
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - ubuntu-24.04-arm
+          - macos-26
+          - macos15-intel
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Toolchain setup
+      - uses: jdx/mise-action@v2
+        with:
+          experimental: true
+          install: true
+
+      - name: Install mise tools
+        run: mise install --yes
+
+      # Ensure Rust components are installed from rust-toolchain.toml
+      - name: Install Rust components
+        run: |
+          rustup component add rustfmt clippy
+
+      - name: Run linting
+        run: make lint
+
+      - name: Run tests
+        run: |
+          # Use fast CI-optimized tests
+          if command -v cargo-nextest >/dev/null 2>&1; then
+            make test-ci
+          else
+            make test
+          fi
